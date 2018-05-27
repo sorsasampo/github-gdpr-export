@@ -5,6 +5,16 @@ import argparse
 import requests
 
 
+def delete(args):
+    headers = {
+        'Accept': 'application/vnd.github.wyandotte-preview+json',
+        'Authorization': 'token %s' % args.token,
+    }
+    r = requests.delete('https://api.github.com/user/migrations/%d/archive' % args.id, headers=headers)
+    r.raise_for_status()
+    print('Migration archive %d deleted' % args.id)
+
+
 def download(args):
     headers = {
         'Accept': 'application/vnd.github.wyandotte-preview+json',
@@ -40,6 +50,10 @@ def list_user_repos(args):
 parser = argparse.ArgumentParser(description='Export GitHub projects using migration API')
 parser.add_argument('--token', help='GitHub personal access token\nhttps://github.com/settings/tokens')
 subparsers = parser.add_subparsers(help='command')
+
+parser_delete = subparsers.add_parser('delete', description='Delete a migration archive')
+parser_delete.add_argument('id', type=int, help='Migration id')
+parser_delete.set_defaults(func=delete)
 
 parser_download = subparsers.add_parser('download', description='Fetch URL for downloading the migration archive')
 parser_download.add_argument('id', type=int, help='Migration id')
