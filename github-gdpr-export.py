@@ -47,6 +47,19 @@ def list_user_repos(args):
         print(repo[u'full_name'])
 
 
+def start(args):
+    headers = {
+        'Accept': 'application/vnd.github.wyandotte-preview+json',
+        'Authorization': 'token %s' % args.token,
+    }
+    data = {'repositories': args.repository}
+    if args.lock:
+        data['lock_repositories'] = True
+    r = requests.post('https://api.github.com/user/migrations', json=data, headers=headers)
+    r.raise_for_status()
+    print('Migration id %d created' % r.json()['id'])
+
+
 parser = argparse.ArgumentParser(description='Export GitHub projects using migration API')
 parser.add_argument('--token', help='GitHub personal access token\nhttps://github.com/settings/tokens')
 subparsers = parser.add_subparsers(help='command')
@@ -66,6 +79,11 @@ parser_list.set_defaults(func=list_migrations)
 parser_list_user_repos = subparsers.add_parser('list-user-repos', description='List user repositories')
 parser_list_user_repos.add_argument('username', help='GitHub username')
 parser_list_user_repos.set_defaults(func=list_user_repos)
+
+parser_start = subparsers.add_parser('start', description='Initiate generation of a user migration archive')
+parser_start.add_argument('--lock', action='store_const', const=True, help='Lock the repositories to prevent changes during migration')
+parser_start.add_argument('repository', nargs='+', help='Repository to include in archive')
+parser_start.set_defaults(func=start)
 
 if __name__ == '__main__':
     args = parser.parse_args()
